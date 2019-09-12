@@ -11,7 +11,6 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.OffsetDateTime
-import java.time.ZoneId
 import java.time.ZoneOffset
 
 class DataInitializerSpec extends Specification {
@@ -19,41 +18,43 @@ class DataInitializerSpec extends Specification {
     static def DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd")
 
     // All this dates represent just 1 day after UNIX Epoch time
-    static def TEST_MILLISECONDS = 24 * 60 * 60 * 1000L
-    static def TEST_DATE = new Date(TEST_MILLISECONDS)
-    static def TEST_SQL_DATE = new java.sql.Date(TEST_MILLISECONDS)
-    static def TEST_INSTANT = Instant.ofEpochMilli(TEST_MILLISECONDS)
-    static def TEST_TIMESTAMP = new Timestamp(TEST_MILLISECONDS)
-    static def TEST_LOCAL_DATE = LocalDate.of(1970, 1, 2)
-    static def TEST_OFFSET_DATE_TIME = TEST_LOCAL_DATE.atTime(LocalTime.of(2, 0))
+    static def MILLISECONDS = 24 * 60 * 60 * 1000L
+    static def DATE = new Date(MILLISECONDS)
+    static def SQL_DATE = new java.sql.Date(MILLISECONDS)
+    static def INSTANT = Instant.ofEpochMilli(MILLISECONDS)
+    static def TIMESTAMP = new Timestamp(MILLISECONDS)
+    static def LOCAL_DATE = LocalDate.of(1970, 1, 2)
+    static def OFFSET_DATE_TIME = LOCAL_DATE
+            .atTime(LocalTime.of(2, 0))
             .atOffset(ZoneOffset.of("+02:00"))
 
-    // This date will be built according with the default timezone depending on the locale
-    static def TEST_DATE_AT_LOCAL_ZONE = DATE_FORMAT.parse("1970-01-02")
+    // This fields depend on the defaults configured in the locale
+    static def DEFAULT_DATE = DATE_FORMAT.parse("1970-01-02")
+    static def DEFAULT_ZONE = ZoneOffset.systemDefault()
 
     @Unroll
     def "test date conversion #obj to #targetType"() {
         given:
-            new DataInitializer()
-            ConversionService<?> conversionService = ConversionService.SHARED
+        new DataInitializer()
+        ConversionService<?> conversionService = ConversionService.SHARED
 
         when:
-            def expectedValue = conversionService.convert(obj, targetType)
+        def expectedValue = conversionService.convert(obj, targetType)
         then:
-            result == expectedValue.get()
+        result == expectedValue.get()
         where:
-            obj                            || targetType     || result
-            TEST_DATE_AT_LOCAL_ZONE        || LocalDate      || TEST_LOCAL_DATE
-            TEST_DATE_AT_LOCAL_ZONE        || LocalDateTime  || TEST_LOCAL_DATE.atStartOfDay()
-            TEST_DATE_AT_LOCAL_ZONE        || OffsetDateTime || TEST_LOCAL_DATE.atStartOfDay().atZone(ZoneId.systemDefault()).toOffsetDateTime()
-            TEST_LOCAL_DATE                || Date           || TEST_DATE_AT_LOCAL_ZONE
-            TEST_LOCAL_DATE.atStartOfDay() || Date           || TEST_DATE_AT_LOCAL_ZONE
-            TEST_DATE                      || Instant        || TEST_INSTANT
-            TEST_INSTANT                   || Date           || TEST_DATE
-            TEST_OFFSET_DATE_TIME          || java.sql.Date  || TEST_SQL_DATE
-            TEST_OFFSET_DATE_TIME          || Date           || TEST_DATE
-            TEST_OFFSET_DATE_TIME          || Long           || TEST_MILLISECONDS
-            TEST_OFFSET_DATE_TIME          || Timestamp      || TEST_TIMESTAMP
-            TEST_OFFSET_DATE_TIME          || LocalDateTime  || TEST_LOCAL_DATE.atTime( LocalTime.of(2,0))
+        obj                       || targetType     || result
+        DEFAULT_DATE              || LocalDate      || LOCAL_DATE
+        DEFAULT_DATE              || LocalDateTime  || LOCAL_DATE.atStartOfDay()
+        DEFAULT_DATE              || OffsetDateTime || LOCAL_DATE.atStartOfDay().atZone(DEFAULT_ZONE).toOffsetDateTime()
+        LOCAL_DATE                || Date           || DEFAULT_DATE
+        LOCAL_DATE.atStartOfDay() || Date           || DEFAULT_DATE
+        DATE                      || Instant        || INSTANT
+        INSTANT                   || Date           || DATE
+        OFFSET_DATE_TIME          || java.sql.Date  || SQL_DATE
+        OFFSET_DATE_TIME          || Date           || DATE
+        OFFSET_DATE_TIME          || Long           || MILLISECONDS
+        OFFSET_DATE_TIME          || Timestamp      || TIMESTAMP
+        OFFSET_DATE_TIME          || LocalDateTime  || LOCAL_DATE.atTime( LocalTime.of(2,0))
     }
 }
