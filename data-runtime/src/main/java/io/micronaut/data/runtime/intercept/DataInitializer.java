@@ -49,6 +49,9 @@ class DataInitializer {
         conversionService.addConverter(Date.class, LocalDateTime.class, date ->
                 date.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime()
         );
+        conversionService.addConverter(Date.class, ZonedDateTime.class, date ->
+                date.toInstant().atZone(ZoneId.systemDefault())
+        );
         conversionService.addConverter(Date.class, OffsetDateTime.class, date ->
                 date.toInstant().atZone(ZoneId.systemDefault()).toOffsetDateTime()
         );
@@ -73,5 +76,15 @@ class DataInitializer {
         );
         conversionService.addConverter(OffsetDateTime.class, LocalDateTime.class, offsetDateTime ->
                 offsetDateTime.toLocalDateTime());
+        conversionService.addConverter(ZonedDateTime.class, java.sql.Date.class, zonedDateTime ->
+                new java.sql.Date(zonedDateTime.toInstant().toEpochMilli()));
+        conversionService.addConverter(ZonedDateTime.class, Date.class, zonedDateTime ->
+                new Date(zonedDateTime.toInstant().toEpochMilli()));
+        conversionService.addConverter(ZonedDateTime.class, Long.class, zonedDateTime ->
+                zonedDateTime.toInstant().toEpochMilli());
+        conversionService.addConverter(ZonedDateTime.class, Timestamp.class, offsetDateTime ->
+                new Timestamp(offsetDateTime.toInstant().toEpochMilli()));
+        conversionService.addConverter(ZonedDateTime.class, LocalDateTime.class, zonedDateTime ->
+                zonedDateTime.toLocalDateTime());
     }
 }
